@@ -26,10 +26,6 @@ const reviews = async (req, res) => {
         .send({ status: false, message: `fill details about review` });
     const { reviewedBy, reviewedAt, rating, review } = bodyData;
 
-    if (!isValid(reviewedBy))
-      return res
-        .status(400)
-        .send({ status: false, message: `reviewedBy field is mandatory` });
     if (!isValid(rating))
       return res
         .status(400)
@@ -41,8 +37,14 @@ const reviews = async (req, res) => {
     bodyData["reviewedAt"] = Date.now();
     const finalData = { bookId: data, ...bodyData };
     const reviewofBooks = await reviewModel.create(finalData);
-    await bookModel.findByIdAndUpdate(data, { $inc: { reviews: 1 } });
-    res.status(201).send({ status: true, data: reviewofBooks });
+    let bookData = await bookModel.findByIdAndUpdate(
+      data,
+      { $inc: { reviews: 1 } },
+      { new: true }
+    );
+    let book = bookData.toObject();
+    book["reviewsData"] = reviewofBooks;
+    res.status(201).send({ status: true, data: book });
   } catch (e) {
     res.status(500).send({ status: false, error: e.message });
   }
@@ -58,19 +60,19 @@ const updateReview = async (req, res) => {
   // console.log(bookId)
   let reviewId = req.params.reviewId;
   if (!isValid(reviewId))
-  return res
-    .status(400)
-    .send({ status: false, message: `reviewedBy field is mandatory` });
-  
-  const reviews = await reviewModel.findById(reviewId);
-  // console.log(reviews.bookId)
-  if (reviews.bookId.toString() !== bookId)
     return res
       .status(400)
-      .send({
-        status: false,
-        msg: `your review's bookId is not match with your given bookId`,
-      });
+      .send({ status: false, message: `reviewedBy field is mandatory` });
+
+  const reviews = await reviewModel.findById(reviewId);
+  // console.log(reviews.bookId)
+  // if (reviews.bookId.toString() !== bookId)
+  //   return res
+  //     .status(400)
+  //     .send({
+  //       status: false,
+  //       msg: `your review's bookId is not match with your given bookId`,
+  //     });
   if (!reviews || reviews.isDeleted)
     return res
       .status(404)
@@ -79,6 +81,7 @@ const updateReview = async (req, res) => {
     return res
       .status(400)
       .send({ status: false, message: `the reviewId ${reviewId} not  valid ` });
+  if(rating){
   if (!validator.isNumeric(rating.toString()))
     return res
       .status(400)
@@ -87,12 +90,16 @@ const updateReview = async (req, res) => {
     return res
       .status(400)
       .send({ status: false, message: `please rate between 1 to 5` });
+  }
   let updateReview = await reviewModel.findByIdAndUpdate(reviewId, data, {
     new: true,
   });
+  let bookData = await bookModel.findById(bookId);
+   let book = bookData.toObject()
+   book["reviewsData"] = updateReview;
   res
     .status(200)
-    .send({ status: true, msg: "update successfull", data: updateReview });
+    .send({ status: true, msg: "update successfull", data: book});
 };
 const deleteReview = async (req, res) => {
   let bookId = req.params.bookId;
@@ -100,18 +107,11 @@ const deleteReview = async (req, res) => {
 
   let reviewId = req.params.reviewId;
   if (!isValid(reviewId))
-  return res
-    .status(400)
-    .send({ status: false, message: `reviewedBy field is mandatory` });
-  const reviews = await reviewModel.findById(reviewId);
-  // console.log(reviews.bookId)
-  if (reviews.bookId.toString() !== bookId)
     return res
       .status(400)
-      .send({
-        status: false,
-        msg: `your review's bookId is not match with your given bookId`,
-      });
+      .send({ status: false, message: `reviewedBy field is mandatory` });
+  const reviews = await reviewModel.findById(reviewId);
+
   if (!reviews || reviews.isDeleted)
     return res
       .status(404)
@@ -132,7 +132,7 @@ const deleteReview = async (req, res) => {
     { upsert: true }
   );
   await bookModel.findByIdAndUpdate(bookId, { $inc: { reviews: -1 } });
-  res.status(200).send({ status: true, msg: "review is deleted successfull" });
+  res.status(200).send({ status: true, message: "review is deleted successfull" });
 };
 module.exports = {
   reviews,

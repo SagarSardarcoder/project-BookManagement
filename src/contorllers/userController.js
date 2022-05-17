@@ -175,12 +175,12 @@ const loginUser = async (req, res) => {
       {
         userId: userExist._id.toString(),
         iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 60,
+        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 60
       },
       "group@50//project@bookmanagement//"
     );
     res.setHeader("x-api-key", token);
-    res.status(201).send({ status: true, token: token });
+    res.status(201).send({ status: true, data: token });
   } catch (err) {
     res.status(500).send({ status: false, error: err.message });
   }
