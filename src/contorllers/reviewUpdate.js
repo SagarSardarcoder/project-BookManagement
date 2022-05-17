@@ -76,7 +76,7 @@ const updateReview = async (req, res) => {
   if (!reviews || reviews.isDeleted)
     return res
       .status(404)
-      .send({ status: false, msg: `review is not present in the data base` });
+      .send({ status: false, message: `review is not present in the data base` });
   if (!isValidObjectId(reviewId))
     return res
       .status(400)
@@ -99,7 +99,7 @@ const updateReview = async (req, res) => {
    book["reviewsData"] = updateReview;
   res
     .status(200)
-    .send({ status: true, msg: "update successfull", data: book});
+    .send({ status: true, message: "update successfull", data: book});
 };
 const deleteReview = async (req, res) => {
   let bookId = req.params.bookId;
