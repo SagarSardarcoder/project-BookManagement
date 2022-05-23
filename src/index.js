@@ -3,17 +3,20 @@ const bodyParser = require('body-parser');
 const route = require('./route/route.js');
 const mongoose = require('mongoose');
 const app = express();
+const multer = require('multer')
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 
-mongoose.connect("mongodb+srv://chandu:root@newcluster.dek5n.mongodb.net/chandudb-project3", {
+mongoose.connect("mongodb+srv://Sagar-functionup:radhaswami123@cluster0.7xlsi.mongodb.net/project?retryWrites=true&w=majority", {
     useNewUrlParser: true
 })
 .then( () => console.log("MongoDb is connected"))
 .catch ( err => console.log(err) )
 
+const { AppConfig } = require('aws-sdk');
+app.use( multer().any())
 
 app.use('/', route);
 

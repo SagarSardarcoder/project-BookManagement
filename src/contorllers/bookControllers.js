@@ -2,6 +2,8 @@ const bookModel = require("../models/bookModel");
 const userModel = require("../models/userModel");
 const mongoose = require("mongoose");
 const Validator = require("validator");
+const aws = require('../aws_S3/awsConnect')
+
 const isValidObjectId = function (ObjectId) {
     return mongoose.Types.ObjectId.isValid(ObjectId);
 };
@@ -16,10 +18,12 @@ const isValid = function (value) {
     if (typeof value === "string" && value.trim().length === 0) return false;
     return true;
 };
+
+
 const bookCreation = async function (req, res) {
     try {
         let data = req.body;
-        const { title, excerpt, userId, ISBN, category, subcategory, releasedAt } = data;
+        const { title, excerpt, userId, ISBN, category, subcategory, releasedAt,bookCover} = data;
         //.....checking the body is present or not------------//
         if (!isValidReqBody(data))
             return res
@@ -92,7 +96,18 @@ const bookCreation = async function (req, res) {
             return res
                 .status(400)
                 .send({ status: false, message: "please enter release time in this format(YYYY-MM-DD)" });
+   ///==========================  AWS => bookCover  ==================================================//
+   let files= req.files
+        if(files && files.length>0){ 
+            //upload to s3 and get the uploaded link
+            let uploadedFileURL= await aws.uploadFile(files[0])
+           // save the linkUrl in bookCover key
+        data["bookCover"] = uploadedFileURL
+        } else{
+            res.status(400).send({ msg: "No file found" })
+        }
 
+        ///////========================= book creation================================////
         const creatbook = await bookModel.create(data);
         return res
             .status(201)

@@ -6,6 +6,8 @@ const getByBook = require("../contorllers/getByBookId")
 const updateController = require("../contorllers/updateControllers")
 const reviewController = require("../contorllers/reviewUpdate")
 const middleware = require("../middleware/auth")
+
+const aws= require("aws-sdk")
 //-------------------user api-----------------------//
 router.post('/register',userController.createUser)
 router.post('/login',userController.loginUser)
@@ -19,4 +21,5 @@ router.put('/books/:bookId',middleware.authentication,middleware.authorization,u
 router.post("/books/:bookId/review",middleware.bookCheck,reviewController.reviews)
 router.put("/books/:bookId/review/:reviewId",middleware.bookCheck,reviewController.updateReview)
 router.delete("/books/:bookId/review/:reviewId",middleware.bookCheck,reviewController.deleteReview)
+
 module.exports=router; 
